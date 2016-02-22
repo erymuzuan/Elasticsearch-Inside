@@ -4,7 +4,7 @@ namespace ElasticsearchInside.CommandLine
 {
     public interface IElasticsearchParameters
     {
-        IElasticsearchParameters HeapSize(int initialHeapsizeMB = 128, int maximumHeapsizeMB = 128);
+        IElasticsearchParameters HeapSize(int initialHeapsizeMb = 128, int maximumHeapsizeMb = 128);
 
         IElasticsearchParameters Port(int port);
 
@@ -13,6 +13,10 @@ namespace ElasticsearchInside.CommandLine
         IElasticsearchParameters LogTo(Action<string, object[]> logger);
 
         IElasticsearchParameters AddArgument(string argument);
+
+        IElasticsearchParameters RootFolder(string rootFolder);
+
+        IElasticsearchParameters OverwriteRootFolder();
 
     }
 }

@@ -7,8 +7,23 @@ namespace ElasticsearchInside.Tests
     public class ElasticsearchTests
     {
         [Test]
+        public void Can_start_with_persistent()
+        {
+            using (var elasticsearch = new Elasticsearch(c => c.RootFolder(@"c:\\temp\\es")))
+            {
+                ////Arrange
+                var client = new ElasticClient(new ConnectionSettings(elasticsearch.Url));
+
+                ////Act
+                var result = client.Ping();
+
+                ////Assert
+                Assert.That(result.IsValid);
+            }
+        }
+        [Test]
         public void Can_start()
-        { 
+        {
             using (var elasticsearch = new Elasticsearch())
             {
                 ////Arrange
@@ -22,11 +37,28 @@ namespace ElasticsearchInside.Tests
             }
         }
 
-        
+
         [Test]
         public void Can_insert_data()
         {
             using (var elasticsearch = new Elasticsearch())
+            {
+                ////Arrange
+                var client = new ElasticClient(new ConnectionSettings(elasticsearch.Url));
+
+                ////Act
+                client.Index(new { id = "tester" }, i => i.Index("test-index").Type("test-type"));
+
+                ////Assert
+                var result = client.Get<dynamic>("tester", "test-index", "test-type");
+                Assert.That(result, Is.Not.Null);
+                Assert.That(result.Found);
+            }
+        }
+        [Test]
+        public void Can_insert_data_with_persistent()
+        {
+            using (var elasticsearch = new Elasticsearch(c => c.RootFolder(@"c:\\temp\es")))
             {
                 ////Arrange
                 var client = new ElasticClient(new ConnectionSettings(elasticsearch.Url));

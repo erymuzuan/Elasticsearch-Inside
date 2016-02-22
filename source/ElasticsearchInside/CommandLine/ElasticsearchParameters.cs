@@ -9,9 +9,12 @@ namespace ElasticsearchInside.CommandLine
     {
         private static readonly Random Random = new Random();
 
+        public string ElasticsearchRootFolder { get; set; }
+        public bool OverwriteElasticsearchRootFolder { get; set; }
+
         private Action<string, object[]> _logger = (format, args) => Trace.WriteLine(string.Format(format, args));
 
-        private IList<string> _customCommandlineArguments = new List<string>();
+        private readonly IList<string> _customCommandlineArguments = new List<string>();
         public ElasticsearchParameters()
         {
             ElasticsearchPort = Random.Next(49152, 65535 + 1);
@@ -105,10 +108,7 @@ namespace ElasticsearchInside.CommandLine
         public string NetworkHost { get; set; }
 
         [FormattedArgument("{0}")]
-        public string CustomArguments
-        {
-            get { return string.Join(" ", _customCommandlineArguments); }
-        }
+        public string CustomArguments => string.Join(" ", _customCommandlineArguments);
 
         [BooleanArgument(@"-cp ""lib/*""", true)]
         internal object ClassPath { get; set; }
@@ -119,10 +119,10 @@ namespace ElasticsearchInside.CommandLine
         [BooleanArgument("start", true)]
         internal object ESArgument { get; set; }
 
-        public IElasticsearchParameters HeapSize(int initialHeapsizeMB = 128, int maximumHeapsizeMB = 128)
+        public IElasticsearchParameters HeapSize(int initialHeapsizeMb = 128, int maximumHeapsizeMb = 128)
         {
-            InitialHeapSize = initialHeapsizeMB;
-            MaximumHeapSize = maximumHeapsizeMB;
+            InitialHeapSize = initialHeapsizeMb;
+            MaximumHeapSize = maximumHeapsizeMb;
             return this;
         }
 
@@ -132,6 +132,19 @@ namespace ElasticsearchInside.CommandLine
             ElasticsearchPort = port;
             return this;
         }
+        public IElasticsearchParameters RootFolder(string rootFolder)
+        {
+            ElasticsearchRootFolder = rootFolder;
+            return this;
+        }
+
+
+        public IElasticsearchParameters OverwriteRootFolder()
+        {
+            OverwriteElasticsearchRootFolder = true;
+            return this;
+        }
+
 
         public IElasticsearchParameters EnableLogging(bool enable = true)
         {
@@ -141,10 +154,7 @@ namespace ElasticsearchInside.CommandLine
 
         public bool LoggingEnabled { get; set; }
 
-        public Action<string, object[]> Logger
-        {
-            get { return _logger; }
-        }
+        public Action<string, object[]> Logger => _logger;
 
         public IElasticsearchParameters LogTo(Action<string, object[]> logger)
         {
