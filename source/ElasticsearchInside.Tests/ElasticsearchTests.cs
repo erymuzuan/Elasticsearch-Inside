@@ -1,4 +1,7 @@
-﻿using Nest;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
+using Nest;
 using NUnit.Framework;
 
 namespace ElasticsearchInside.Tests
@@ -56,18 +59,40 @@ namespace ElasticsearchInside.Tests
             }
         }
         [Test]
-        public void Can_insert_data_with_persistent()
+        public async Task Can_insert_data_with_persistent()
         {
-            using (var elasticsearch = new Elasticsearch(c => c.RootFolder(@"c:\\temp\es")))
+            const string FOLDER = @"c:\\temp\es003";
+            const string INDEX = "test-index";
+            const string TYPE = "test-type";
+            const int PORT = 9205;
+            var id = Guid.NewGuid().ToString();
+
+            if(Directory.Exists(FOLDER)) Directory.Delete(FOLDER, true);
+
+            using (var elasticsearch = new Elasticsearch(c => c.Port(PORT).RootFolder(FOLDER).OverwriteRootFolder()))
             {
                 ////Arrange
                 var client = new ElasticClient(new ConnectionSettings(elasticsearch.Url));
 
                 ////Act
-                client.Index(new { id = "tester" }, i => i.Index("test-index").Type("test-type"));
+                client.Index(new { id }, i => i.Index(INDEX).Type(TYPE));
 
+                await Task.Delay(2000);
                 ////Assert
-                var result = client.Get<dynamic>("tester", "test-index", "test-type");
+                var result = client.Get<dynamic>(id, INDEX, TYPE);
+                Assert.That(result, Is.Not.Null);
+                Assert.That(result.Found);
+            }
+
+            await Task.Delay(5000);
+
+            using (var elasticsearch = new Elasticsearch(c => c.Port(PORT).RootFolder(FOLDER)))
+            {
+                ////Arrange
+                var client = new ElasticClient(new ConnectionSettings(elasticsearch.Url));
+                
+                ////Assert
+                var result = client.Get<dynamic>(id, INDEX, TYPE);
                 Assert.That(result, Is.Not.Null);
                 Assert.That(result.Found);
             }
