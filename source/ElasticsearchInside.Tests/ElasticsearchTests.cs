@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Nest;
@@ -61,15 +62,23 @@ namespace ElasticsearchInside.Tests
         [Test]
         public async Task Can_insert_data_with_persistent()
         {
-            const string FOLDER = @"c:\\temp\es003";
+            var nodeName = @"data_with_persistent_" + DateTime.Now.Millisecond;
+            var clusterName = @"cluster_data_with_persistent_" + DateTime.Now.Millisecond; ;
+            const string FOLDER = @"c:\\temp\es004";
             const string INDEX = "test-index";
             const string TYPE = "test-type";
             const int PORT = 9205;
             var id = Guid.NewGuid().ToString();
 
-            if(Directory.Exists(FOLDER)) Directory.Delete(FOLDER, true);
+            if (Directory.Exists(FOLDER)) Directory.Delete(FOLDER, true);
 
-            using (var elasticsearch = new Elasticsearch(c => c.Port(PORT).RootFolder(FOLDER).OverwriteRootFolder()))
+            using (var elasticsearch = new Elasticsearch(c => c
+                .SetNodeName(nodeName)
+                .SetClusterName(clusterName)
+                .Port(PORT)
+                .RootFolder(FOLDER)
+                .OverwriteRootFolder()
+                ))
             {
                 ////Arrange
                 var client = new ElasticClient(new ConnectionSettings(elasticsearch.Url));
@@ -77,20 +86,34 @@ namespace ElasticsearchInside.Tests
                 ////Act
                 client.Index(new { id }, i => i.Index(INDEX).Type(TYPE));
 
-                await Task.Delay(2000);
                 ////Assert
                 var result = client.Get<dynamic>(id, INDEX, TYPE);
                 Assert.That(result, Is.Not.Null);
                 Assert.That(result.Found);
             }
-
-            await Task.Delay(5000);
-
-            using (var elasticsearch = new Elasticsearch(c => c.Port(PORT).RootFolder(FOLDER)))
+            Console.WriteLine("Shutting down the 1st instance");
+            var count = 1;
+            while (count > 0)
             {
+                Console.Write(".");
+                count = Process.GetProcessesByName("java").Length;
+                await Task.Delay(500);
+            }
+            Console.WriteLine();
+
+
+            using (var elasticsearch = new Elasticsearch(c => c
+                .Port(PORT)
+                .RootFolder(FOLDER)
+                .SetNodeName(nodeName)
+                .SetClusterName(clusterName)
+                ))
+            {
+
+                Console.WriteLine("2nd instance started");
                 ////Arrange
                 var client = new ElasticClient(new ConnectionSettings(elasticsearch.Url));
-                
+
                 ////Assert
                 var result = client.Get<dynamic>(id, INDEX, TYPE);
                 Assert.That(result, Is.Not.Null);

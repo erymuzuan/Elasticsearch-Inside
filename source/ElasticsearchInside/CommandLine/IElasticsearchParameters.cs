@@ -14,6 +14,8 @@ namespace ElasticsearchInside.CommandLine
 
         IElasticsearchParameters AddArgument(string argument);
 
+        IElasticsearchParameters SetNodeName(string node);
+        IElasticsearchParameters SetClusterName(string cluster);
         IElasticsearchParameters RootFolder(string rootFolder);
 
         IElasticsearchParameters OverwriteRootFolder();

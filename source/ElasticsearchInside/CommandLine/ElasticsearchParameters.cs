@@ -12,6 +12,7 @@ namespace ElasticsearchInside.CommandLine
         public string ElasticsearchRootFolder { get; set; }
         public bool OverwriteElasticsearchRootFolder { get; set; }
 
+
         private Action<string, object[]> _logger = (format, args) => Trace.WriteLine(string.Format(format, args));
 
         private readonly IList<string> _customCommandlineArguments = new List<string>();
@@ -101,7 +102,7 @@ namespace ElasticsearchInside.CommandLine
         //[FormattedArgument("-Des.gateway.type={0}", "local")]
         //public string Gateway { get; set; }
 
-        [FormattedArgument("-Des.cluster.name=integrationtest_{0}", "tester")]
+        [FormattedArgument("-Des.cluster.name={0}", "tester")]
         public string Clustername { get; set; }
 
         [FormattedArgument("-Des.network.host={0}")]
@@ -137,6 +138,19 @@ namespace ElasticsearchInside.CommandLine
             ElasticsearchRootFolder = rootFolder;
             return this;
         }
+        public IElasticsearchParameters SetNodeName(string node)
+        {
+            EsNodeName = node;
+            return this;
+        }
+
+
+        public IElasticsearchParameters SetClusterName(string cluster)
+        {
+            Clustername = cluster;
+            return this;
+        }
+
 
 
         public IElasticsearchParameters OverwriteRootFolder()
